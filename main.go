@@ -22,6 +22,7 @@ func main() {
 			defer c.L.Unlock()
 			defer wg.Done()
 
+			// c.Broadcast()されるまで待つ (Signalだと、順番に再開される)
 			c.Wait()
 
 			fmt.Printf("worker %d start\n", i)
@@ -37,8 +38,18 @@ func main() {
 		time.Sleep(time.Second * 1)
 	}
 
-	// 一斉に実行
-	c.Broadcast()
+	//------------------------------
+	// ここで一気にwait解除させるならBroadcastで、一つづつwait解除するならsignalを実行する
+
+	// // 一斉に実行
+	// c.Broadcast()
+
+	// 順番に実行
+	for i := 0; i < 10; i++ {
+		fmt.Printf("次開始\n")
+		c.Signal()
+		time.Sleep(time.Millisecond * 500)
+	}
 
 	// 全部のworkerの処理が終わるまで待つ
 	wg.Wait()
